@@ -150,6 +150,7 @@ class Glint_AI_Settings {
 		register_setting( 'glint_ai_settings', 'glint_ai_whitelist_sender' );
 		register_setting( 'glint_ai_settings', 'glint_ai_whitelist_recipient' );
 		register_setting( 'glint_ai_settings', 'glint_ai_whitelist_reply_to' );
+		register_setting( 'glint_ai_settings', 'glint_ai_blacklist_content' );
 		register_setting( 'glint_ai_settings', 'glint_ai_cached_models' );
 
 		add_settings_section( 'glint_ai_main_section', 'Main Settings', null, 'glint-ai-spam-killer' );
@@ -160,11 +161,12 @@ class Glint_AI_Settings {
 		add_settings_field( 'glint_ai_system_prompt', 'Additional System Prompt', array( __CLASS__, 'field_system_prompt' ), 'glint-ai-spam-killer', 'glint_ai_main_section' );
 		add_settings_field( 'glint_ai_rate_limit', 'Rate Limit (per run)', array( __CLASS__, 'field_rate_limit' ), 'glint-ai-spam-killer', 'glint_ai_main_section' );
 		
-		add_settings_section( 'glint_ai_whitelist_section', 'Whitelists', null, 'glint-ai-spam-killer' );
+		add_settings_section( 'glint_ai_whitelist_section', 'Whitelists & Blacklists', null, 'glint-ai-spam-killer' );
 		
 		add_settings_field( 'glint_ai_whitelist_sender', 'Sender Whitelist (From)', array( __CLASS__, 'field_whitelist_sender' ), 'glint-ai-spam-killer', 'glint_ai_whitelist_section' );
 		add_settings_field( 'glint_ai_whitelist_recipient', 'Recipient Whitelist (To)', array( __CLASS__, 'field_whitelist_recipient' ), 'glint-ai-spam-killer', 'glint_ai_whitelist_section' );
 		add_settings_field( 'glint_ai_whitelist_reply_to', 'Reply-To Whitelist', array( __CLASS__, 'field_whitelist_reply_to' ), 'glint-ai-spam-killer', 'glint_ai_whitelist_section' );
+		add_settings_field( 'glint_ai_blacklist_content', 'Content Blacklist', array( __CLASS__, 'field_blacklist_content' ), 'glint-ai-spam-killer', 'glint_ai_whitelist_section' );
 	}
 
 	public static function field_api_provider() {
@@ -216,6 +218,12 @@ class Glint_AI_Settings {
 		$val = get_option( 'glint_ai_whitelist_reply_to', '' );
 		echo '<textarea name="glint_ai_whitelist_reply_to" rows="4" class="large-text code">' . esc_textarea( $val ) . '</textarea>';
 		echo '<p class="description">One email (admin@test.com) or domain (@test.com) per line. Applies to the Reply-To address.</p>';
+	}
+
+	public static function field_blacklist_content() {
+		$val = get_option( 'glint_ai_blacklist_content', '' );
+		echo '<textarea name="glint_ai_blacklist_content" rows="4" class="large-text code">' . esc_textarea( $val ) . '</textarea>';
+		echo '<p class="description">One keyword or phrase per line. If the email subject or body contains ANY of these exactly (case-sensitive, including spaces), it will be blocked immediately without AI check.</p>';
 	}
 
 	public static function settings_page_html() {
