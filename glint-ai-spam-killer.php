@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('GLINT_AI_SPAM_KILLER_VERSION', '1.0.0');
+define('GLINT_AI_SPAM_KILLER_VERSION', '1.0.1');
 define('GLINT_AI_SPAM_KILLER_DIR', plugin_dir_path(__FILE__));
 define('GLINT_AI_SPAM_KILLER_URL', plugin_dir_url(__FILE__));
 
@@ -56,10 +56,20 @@ class Glint_AI_Spam_Killer
 
 	public function init()
 	{
+		$this->check_db_update();
+		
 		Glint_AI_Settings::init();
 		Glint_AI_List_Table::init();
 		Glint_AI_Interceptor::init();
 		Glint_AI_Cron::init();
+	}
+
+	private function check_db_update() {
+		$db_version = get_option('glint_ai_db_version', '0');
+		if (version_compare($db_version, GLINT_AI_SPAM_KILLER_VERSION, '<')) {
+			Glint_AI_DB::create_table();
+			update_option('glint_ai_db_version', GLINT_AI_SPAM_KILLER_VERSION);
+		}
 	}
 }
 

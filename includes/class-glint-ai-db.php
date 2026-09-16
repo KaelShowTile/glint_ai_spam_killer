@@ -22,6 +22,8 @@ class Glint_AI_DB {
 			message longtext NOT NULL,
 			headers text NOT NULL,
 			status varchar(20) NOT NULL DEFAULT 'pending',
+			sender_name varchar(255) DEFAULT '',
+			sender_email varchar(255) DEFAULT '',
 			ai_reason text,
 			created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id)

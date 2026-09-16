@@ -152,6 +152,7 @@ class Glint_AI_Settings {
 		register_setting( 'glint_ai_settings', 'glint_ai_whitelist_reply_to' );
 		register_setting( 'glint_ai_settings', 'glint_ai_blacklist_content' );
 		register_setting( 'glint_ai_settings', 'glint_ai_cached_models' );
+		register_setting( 'glint_ai_settings', 'glint_ai_omnisend_api_key' );
 
 		add_settings_section( 'glint_ai_main_section', 'Main Settings', null, 'glint-ai-spam-killer' );
 
@@ -167,6 +168,9 @@ class Glint_AI_Settings {
 		add_settings_field( 'glint_ai_whitelist_recipient', 'Recipient Whitelist (To)', array( __CLASS__, 'field_whitelist_recipient' ), 'glint-ai-spam-killer', 'glint_ai_whitelist_section' );
 		add_settings_field( 'glint_ai_whitelist_reply_to', 'Reply-To Whitelist', array( __CLASS__, 'field_whitelist_reply_to' ), 'glint-ai-spam-killer', 'glint_ai_whitelist_section' );
 		add_settings_field( 'glint_ai_blacklist_content', 'Content Blacklist', array( __CLASS__, 'field_blacklist_content' ), 'glint-ai-spam-killer', 'glint_ai_whitelist_section' );
+
+		add_settings_section( 'glint_ai_integrations_section', 'Integrations', null, 'glint-ai-spam-killer' );
+		add_settings_field( 'glint_ai_omnisend_api_key', 'Omnisend API Key', array( __CLASS__, 'field_omnisend_api_key' ), 'glint-ai-spam-killer', 'glint_ai_integrations_section' );
 	}
 
 	public static function field_api_provider() {
@@ -224,6 +228,12 @@ class Glint_AI_Settings {
 		$val = get_option( 'glint_ai_blacklist_content', '' );
 		echo '<textarea name="glint_ai_blacklist_content" rows="4" class="large-text code">' . esc_textarea( $val ) . '</textarea>';
 		echo '<p class="description">One keyword or phrase per line. If the email subject or body contains ANY of these exactly (case-sensitive, including spaces), it will be blocked immediately without AI check.</p>';
+	}
+
+	public static function field_omnisend_api_key() {
+		$val = get_option( 'glint_ai_omnisend_api_key', '' );
+		echo '<input type="password" name="glint_ai_omnisend_api_key" id="glint_ai_omnisend_api_key" value="' . esc_attr( $val ) . '" class="regular-text" />';
+		echo '<p class="description">Optional. Enter your Omnisend API Key to automatically add non-spam contacts to your Audience list.</p>';
 	}
 
 	public static function settings_page_html() {

@@ -154,13 +154,15 @@ class Glint_AI_List_Table extends WP_List_Table {
 
 	public function get_columns() {
 		return array(
-			'cb'         => '<input type="checkbox" />',
-			'created_at' => 'Date',
-			'to_email'   => 'To Email',
-			'subject'    => 'Subject',
-			'message'    => 'Message',
-			'status'     => 'Status',
-			'ai_reason'  => 'AI Reason'
+			'cb'           => '<input type="checkbox" />',
+			'created_at'   => 'Date',
+			'to_email'     => 'To Email',
+			'sender_name'  => 'Sender Name',
+			'sender_email' => 'From Email',
+			'subject'      => 'Subject',
+			'message'      => 'Message',
+			'status'       => 'Status',
+			'ai_reason'    => 'AI Reason'
 		);
 	}
 
@@ -263,6 +265,6 @@ class Glint_AI_List_Table extends WP_List_Table {
 	}
 
 	public function column_default( $item, $column_name ) {
-		return esc_html( $item[ $column_name ] );
+		return isset( $item[ $column_name ] ) ? esc_html( $item[ $column_name ] ) : '';
 	}
 }
