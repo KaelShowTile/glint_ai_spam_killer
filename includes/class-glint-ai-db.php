@@ -20,6 +20,7 @@ class Glint_AI_DB {
 			to_email varchar(255) NOT NULL,
 			subject varchar(255) NOT NULL,
 			message longtext NOT NULL,
+			raw_content longtext,
 			headers text NOT NULL,
 			status varchar(20) NOT NULL DEFAULT 'pending',
 			sender_name varchar(255) DEFAULT '',

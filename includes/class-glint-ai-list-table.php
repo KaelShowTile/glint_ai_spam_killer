@@ -42,6 +42,14 @@ class Glint_AI_List_Table extends WP_List_Table {
 			return;
 		}
 
+		if ( isset( $_GET['export_csv'] ) ) {
+			if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'glint_ai_export_csv' ) ) {
+				wp_die( esc_html__( 'Security check failed.', 'glint-ai-spam-killer' ) );
+			}
+			self::export_csv( sanitize_text_field( $_GET['export_csv'] ) );
+			exit;
+		}
+
 		if ( isset( $_GET['clear_all_blocked'] ) && wp_verify_nonce( $_GET['_wpnonce'], 'clear_all_blocked' ) ) {
 			global $wpdb;
 			$table_name = Glint_AI_DB::get_table_name();
@@ -86,6 +94,98 @@ class Glint_AI_List_Table extends WP_List_Table {
 		exit;
 	}
 
+	public static function export_csv( $type ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Unauthorized user', 'glint-ai-spam-killer' ) );
+		}
+
+		$status_map = array(
+			'spam'   => 'blocked',
+			'normal' => 'sent',
+		);
+
+		if ( ! isset( $status_map[ $type ] ) ) {
+			wp_die( esc_html__( 'Invalid export type', 'glint-ai-spam-killer' ) );
+		}
+
+		$target_status = $status_map[ $type ];
+		$filename      = ( 'spam' === $type ? 'spam-emails-' : 'normal-emails-' ) . gmdate( 'Y-m-d' ) . '.csv';
+
+		if ( ob_get_level() ) {
+			ob_end_clean();
+		}
+
+		header( 'Content-Type: text/csv; charset=UTF-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		header( 'Pragma: no-cache' );
+		header( 'Expires: 0' );
+
+		$output = fopen( 'php://output', 'w' );
+
+		// Output UTF-8 BOM so Microsoft Excel correctly displays multi-byte/UTF-8 characters
+		fprintf( $output, chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
+
+		// Header matching the Email Logs table columns
+		fputcsv( $output, array(
+			'Date',
+			'To Email',
+			'Sender Name',
+			'From Email',
+			'Subject',
+			'Message',
+			'Status',
+			'AI Reason',
+		) );
+
+		global $wpdb;
+		$table_name = Glint_AI_DB::get_table_name();
+
+		$chunk_size = 500;
+		$offset     = 0;
+
+		while ( true ) {
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT created_at, to_email, sender_name, sender_email, subject, message, status, ai_reason 
+					 FROM $table_name 
+					 WHERE status = %s 
+					 ORDER BY created_at DESC 
+					 LIMIT %d OFFSET %d",
+					$target_status,
+					$chunk_size,
+					$offset
+				),
+				ARRAY_A
+			);
+
+			if ( empty( $results ) ) {
+				break;
+			}
+
+			foreach ( $results as $row ) {
+				fputcsv( $output, array(
+					isset( $row['created_at'] ) ? $row['created_at'] : '',
+					isset( $row['to_email'] ) ? $row['to_email'] : '',
+					isset( $row['sender_name'] ) ? $row['sender_name'] : '',
+					isset( $row['sender_email'] ) ? $row['sender_email'] : '',
+					isset( $row['subject'] ) ? $row['subject'] : '',
+					isset( $row['message'] ) ? $row['message'] : '',
+					isset( $row['status'] ) ? ucfirst( $row['status'] ) : '',
+					isset( $row['ai_reason'] ) ? $row['ai_reason'] : '',
+				) );
+			}
+
+			if ( count( $results ) < $chunk_size ) {
+				break;
+			}
+
+			$offset += $chunk_size;
+		}
+
+		fclose( $output );
+		exit;
+	}
+
 	public static function render_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -97,8 +197,12 @@ class Glint_AI_List_Table extends WP_List_Table {
 		<div class="wrap">
 			<h1 class="wp-heading-inline">Email Logs</h1>
 			<?php 
+			$export_spam_url = wp_nonce_url( admin_url( 'admin.php?page=glint-ai-spam-logs&export_csv=spam' ), 'glint_ai_export_csv' );
+			$export_normal_url = wp_nonce_url( admin_url( 'admin.php?page=glint-ai-spam-logs&export_csv=normal' ), 'glint_ai_export_csv' );
 			$clear_url = wp_nonce_url( admin_url('admin.php?page=glint-ai-spam-logs&clear_all_blocked=1'), 'clear_all_blocked' );
 			?>
+			<a href="<?php echo esc_url( $export_spam_url ); ?>" class="page-title-action">Export Spam CSV</a>
+			<a href="<?php echo esc_url( $export_normal_url ); ?>" class="page-title-action">Export Normal CSV</a>
 			<a href="<?php echo esc_url( $clear_url ); ?>" class="page-title-action" onclick="return confirm('Are you sure you want to delete ALL blocked logs?');">Clear All Blocked</a>
 			<hr class="wp-header-end">
 			<form id="logs-filter" method="get">

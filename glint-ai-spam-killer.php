@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ST AI Spam Killer
  * Description: Intercepts wp_mail and uses Gemini LLM to filter out spam emails asynchronously.
- * Version: 1.0.0
+ * Version: 1.0.3
  * Author: Kael
  * Text Domain: glint-ai-spam-killer
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-define('GLINT_AI_SPAM_KILLER_VERSION', '1.0.1');
+define('GLINT_AI_SPAM_KILLER_VERSION', '1.0.3');
 define('GLINT_AI_SPAM_KILLER_DIR', plugin_dir_path(__FILE__));
 define('GLINT_AI_SPAM_KILLER_URL', plugin_dir_url(__FILE__));
 

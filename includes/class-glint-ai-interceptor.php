@@ -55,12 +55,13 @@ class Glint_AI_Interceptor
 					'to_email' => $to_str,
 					'subject' => $subject,
 					'message' => $message,
+					'raw_content' => $message,
 					'headers' => $headers_str,
 					'status' => 'blocked',
 					'created_at' => current_time('mysql'),
 					'ai_reason' => 'Blocked by content blacklist'
 				),
-				array('%s', '%s', '%s', '%s', '%s', '%s', '%s')
+				array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
 			);
 			return true;
 		}
@@ -79,11 +80,12 @@ class Glint_AI_Interceptor
 				'to_email' => $to_str,
 				'subject' => $subject,
 				'message' => $message,
+				'raw_content' => $message,
 				'headers' => $headers_str,
 				'status' => 'pending',
 				'created_at' => current_time('mysql'),
 			),
-			array('%s', '%s', '%s', '%s', '%s', '%s')
+			array('%s', '%s', '%s', '%s', '%s', '%s', '%s')
 		);
 
 		// Return true to short-circuit wp_mail
@@ -108,7 +110,10 @@ class Glint_AI_Interceptor
 
 		// Send mail
 		$headers = explode("\n", $log->headers);
-		$sent = wp_mail($log->to_email, $log->subject, $log->message, $headers);
+		
+		$email_body = !empty($log->raw_content) ? $log->raw_content : $log->message;
+		
+		$sent = wp_mail($log->to_email, $log->subject, $email_body, $headers);
 
 		// Re-add filter
 		add_filter('pre_wp_mail', array(__CLASS__, 'intercept_mail'), 10, 2);
